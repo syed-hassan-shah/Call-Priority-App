@@ -1,7 +1,6 @@
 package com.app.myapplication
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -23,8 +22,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    val TAG: String = MainActivity::class.java.simpleName
-
     @Inject
     lateinit var httpClient: OkHttpClient
 
@@ -34,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        LOG.debug("Started Activity")
         val okHttpClient = httpClient.newBuilder()
             .dispatcher(Dispatcher(executorServiceDecorator))
             .addInterceptor(httpClient.interceptors.first())
@@ -48,13 +46,13 @@ class MainActivity : AppCompatActivity() {
         for (i in 0..10) {
             CoroutineScope(Dispatchers.IO).launch {
                 val response = httpClient.newCall(getPOSTRequestRequest(false)).execute()
-                Log.e(TAG, "execute: got $response from Non Priority Call}")
+                LOG.debug("onResponse: got {} from Non Priority Call", response)
 
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
             val response = okHttpClient.newCall(getPOSTRequestRequest(true)).execute()
-            Log.e(TAG, "execute: got $response from Priority Call}")
+            LOG.debug("onResponse: got {} from Priority Call", response)
 
         }
     }
@@ -65,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onResponse(call: Call, response: Response) {
-            Log.e(TAG, "onResponse: got $response from ${call.request().tag()}")
+            LOG.debug("onResponse: got {} from {}", response, call.request().tag())
         }
     }
 
@@ -76,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         return Request.Builder().url(urlBuilder?.build().toString()).tag("Normal").build()
     }
 
-    private val JSON: MediaType? = "application/json; charset=utf-8".toMediaTypeOrNull()
+    private val _json: MediaType? = "application/json; charset=utf-8".toMediaTypeOrNull()
     private fun bowlingJson(): String {
         return ("{'winCondition':'HIGH_SCORE',"
                 + "'name':'Bowling',"
@@ -92,8 +90,13 @@ class MainActivity : AppCompatActivity() {
     private fun getPOSTRequestRequest(isPriority: Boolean): Request {
         return Request.Builder()
             .url("http://www.roundsapp.com/post")
-            .post(bowlingJson().toRequestBody(JSON))
+            .post(bowlingJson().toRequestBody(_json))
             .tag(if (isPriority) "Priority Call" else "Non Priority Call ")
             .build()
+    }
+
+    companion object {
+
+        private val LOG = logger<MainActivity>("OKHTTPCalls")
     }
 }

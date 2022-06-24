@@ -20,7 +20,7 @@ fun main() {
     val executorService = getExecutorService()
 
     for (i in 0..10) {
-        executorService.execute(PriorityRunnerTest("Runner${i + 1}", 1))
+        executorService.execute(PriorityRunnerTest("Runner ${i + 1}", 1))
     }
     for (i in 0..10) {
         executorService.execute { println("run: Runner ${i + 1} is running with no priority") }
