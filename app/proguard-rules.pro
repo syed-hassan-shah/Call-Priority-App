@@ -1,5 +1,5 @@
 -ignorewarnings
--dontoptimize
+#-dontoptimize
 -dontobfuscate
 -dontskipnonpubliclibraryclasses
 
